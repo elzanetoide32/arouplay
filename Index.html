@@ -1,0 +1,124 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/p5.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.9.0/addons/p5.dom.min.js"></script>
+<script src="https://unpkg.com/ml5@latest/dist/ml5.min.js"></script>
+<script type="text/javascript">
+  // Classifier Variable
+  let classifier;
+  // Model URL
+  let imageModelURL = 'https://teachablemachine.withgoogle.com/models/aWhpCij_V/';
+  
+  // Video
+  let video;
+  let flippedVideo;
+  // To store the classification
+  let label = "";
+  let labelAnterior = "";
+  let lastPlayed;
+  let arraySi = ['si1', 'si2'];
+  let arrayNo = ['no1', 'no2', 'no3', 'no4', 'no5'];
+
+  // Load the model first
+  function preload() {
+    classifier = ml5.imageClassifier(imageModelURL + 'model.json');
+  }
+
+  function setup() {
+    createCanvas(320, 260);
+    // Create the video
+    video = createCapture(VIDEO);
+    video.size(320, 240);
+    video.hide();
+
+    flippedVideo = ml5.flipImage(video);
+    // Start classifying
+    classifyVideo();
+  }
+
+  function draw() {
+    background(0);
+    // Draw the video
+    image(flippedVideo, 0, 0);
+    fill(255);
+    textSize(16);
+    textAlign(CENTER);
+    text(label, width / 2, height - 4);
+  }
+
+  // Get a prediction for the current video frame
+  function classifyVideo() {
+    flippedVideo = ml5.flipImage(video)
+    classifier.classify(flippedVideo, gotResult);
+    flippedVideo.remove();
+
+  }
+
+  function playSound(label){
+
+    var audio = new Audio(label+'.mp3');
+
+    if(lastPlayed != undefined && isPlaying(lastPlayed)){
+      
+      lastPlayed.pause();
+      
+      audio.play();
+      
+      console.log("Audio Ant");
+
+    }else{
+      
+      audio.play();
+      console.log("Audio Actual");
+
+    }
+
+    lastPlayed = audio;
+
+
+  }
+
+  function isPlaying(audelem) { return !audelem.paused || audelem.currentTime > 0; }
+
+  // When we get a result
+  function gotResult(error, results) {
+    // If there is an error
+    if (error) {
+      console.error(error);
+      return;
+    }
+    // The results are in an array ordered by confidence.
+    // console.log(results[0].label);
+    label = results[0].label;
+
+    if(labelAnterior != label){
+
+      switch(label){
+        case "luca": 
+          playSound(arraySi[Math.floor(Math.random() * arraySi.length)]);
+        break;
+        case "eze": 
+          playSound(arrayNo[Math.floor(Math.random() * arrayNo.length)]);
+        break;
+
+        case "martina": 
+          playSound(arraySi[Math.floor(Math.random() * arraySi.length)]);
+        break;
+
+        case "Nada":
+          // nada...
+        break;
+
+        case "dinosaurio":
+          playSound(arrayNo[Math.floor(Math.random() * arrayNo.length)]);
+        break;
+
+        /*default:
+          playSound(arrayNo[Math.floor(Math.random() * arrayNo.length)]);*/
+      }
+
+    }
+
+    labelAnterior = label;
+    // Classifiy again!
+    classifyVideo();
+  }
+</script>
